@@ -47,7 +47,7 @@ class Scraper():
         :return: None
         """
         after = None
-        self.tqdm_bar = tqdm(total=iterations * 25, file=sys.stdout)
+        self.tqdm_bar = tqdm(total=pages * 25, file=sys.stdout)
         for _ in range(pages):
             json, after = self.get_json(sort_option=sort_option, after=after)
             self.save(json)
