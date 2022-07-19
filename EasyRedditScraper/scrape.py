@@ -88,25 +88,25 @@ class Scraper():
             item = item['data']
             for media_type in self.media_types:
                 try:
-                    url, filename = media_type.get_url_and_path(item)
+                    urls, filenames = media_type.get_url_and_path(item)
                 except Exception as error_message:
                     message = "Could not get url due to the following errror: \n" + str(
                         error_message) + "\n Skipping this item and jump to the next one."
                     self.print_message(message)
                     self.stats["failed"] += 1
                     continue
-                try:
-                    save_path = os.path.join(self.path, media_type.name, filename)
-                    success = self.DownloadFile(url, save_path)
-                    if success:
-                        self.stats["successful"] += 1
-                    else:
-                        self.stats["existed"] += 1
-                except:
-                    message = media_type.exception(url)
-                    self.stats["failed"] += 1
-                    self.print_message(message)
-
+                for url, filename in zip(urls, filenames):
+                    try:
+                        save_path = os.path.join(self.path, media_type.name, filename)
+                        success = self.DownloadFile(url, save_path)
+                        if success:
+                            self.stats["successful"] += 1
+                        else:
+                            self.stats["existed"] += 1
+                    except:
+                        message = media_type.exception(url)
+                        self.stats["failed"] += 1
+                        self.print_message(message)
             self.tqdm_bar.update(1)
 
     def DownloadFile(self, resource, save_path: str) -> bool:
