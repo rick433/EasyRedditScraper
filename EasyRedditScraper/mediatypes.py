@@ -1,5 +1,5 @@
 import json
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
 
 class Content():
@@ -23,13 +23,13 @@ class MediaType():
     def __init__(self, name: str):
         self.name = name
 
-    def get_url_and_path(self, item: Dict) -> Tuple[str, str]:
+    def get_url_and_path(self, item: Dict) -> Tuple[List[str], List[str]]:
         """
         Needs to be overwritten
         :param item: json/dict from the reddit api
         :return: url or content and the path for saving
         """
-        return "", ""
+        return [""], [""]
 
     def exception(self, url: str) -> str:
         """
@@ -48,12 +48,12 @@ class JSON(MediaType):
     def __init__(self):
         super().__init__(name="JSON")
 
-    def get_url_and_path(self, item: Dict) -> Tuple[Content, str]:
+    def get_url_and_path(self, item: Dict) -> Tuple[List[str], List[str]]:
         subreddit_id = item['subreddit_id']
         id = item['id']
         content = Content(json.dumps(item))
         filename = "_".join([subreddit_id, id]) + ".json"
-        return content, filename
+        return [content], [filename]
 
 
 class Text(MediaType):
@@ -64,30 +64,47 @@ class Text(MediaType):
     def __init__(self):
         super().__init__(name="Text")
 
-    def get_url_and_path(self, item: Dict) -> Tuple[Content, str]:
+    def get_url_and_path(self, item: Dict) -> Tuple[List[str], List[str]]:
         subreddit_id = item['subreddit_id']
         id = item['id']
         title = item["title"]
         text = item["selftext"]
         content = Content(title + "\n" + text)
         filename = "_".join([subreddit_id, id]) + ".txt"
-        return content, filename
+        return [content], [filename]
 
 
 class Image(MediaType):
     """
-    Class for downloading and saving images. Works with jpg files.
+    Class for downloading and saving images.
     """
 
     def __init__(self):
         super().__init__(name="Image")
 
-    def get_url_and_path(self, item: Dict) -> Tuple[str, str]:
+    def get_url_and_path(self, item: Dict) -> Tuple[List[str], List[str]]:
         subreddit_id = item['subreddit_id']
         id = item['id']
         url = item['preview']['images'][0]['source']['url']
-        filename = "_".join([subreddit_id, id]) + ".jpg"
-        return url, filename
+        filename = "_".join([subreddit_id, id])
+        return [url], [filename]
+
+
+class Gallery(MediaType):
+
+    """
+    Support gallery items
+    """
+
+    def __init__(self):
+        super().__init__(name="Gallery")
+
+    def get_url_and_path(self, item):
+        subreddit_id = item['subreddit_id']
+        urls = [sub["s"]["u"].replace("amp;", "") for key, sub in item["media_metadata"].items()]
+        ids = [sub["id"] for key, sub in item["media_metadata"].items()]
+        filenames = ["_".join([subreddit_id, ID]) for ID in ids]
+        return urls, filenames
 
 
 class Video(MediaType):
@@ -98,7 +115,7 @@ class Video(MediaType):
     def __init__(self):
         super().__init__(name="Video")
 
-    def get_url_and_path(self, item: Dict) -> Tuple[str, str]:
+    def get_url_and_path(self, item: Dict) -> Tuple[List[str], List[str]]:
         subreddit_id = item['subreddit_id']
         id = item['id']
         if item["is_video"]:
@@ -106,4 +123,4 @@ class Video(MediaType):
         else:
             url = item['preview']['reddit_video_preview']['fallback_url']
         filename = "_".join([subreddit_id, id]) + ".mp4"
-        return url, filename
+        return [url], [filename]

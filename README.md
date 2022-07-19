@@ -42,7 +42,7 @@ class MyDownloadFormat(MediaType):
     def get_url_and_path(self, item): #item is the json data for a single post
         url = ..., #extract url from item. E.g. item['preview']['images'][0]['source']['url']
         filename = ... #how should the file be saved? 
-        return url, filename 
+        return [url], [filename] # needs to be a list, could also store multuple items 
         
 subreddit = ...
 my_scraper = Scraper(subreddit=subreddit, media_types=[MyDownloadFormat()]) #initialize the scraper
